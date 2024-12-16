@@ -1,4 +1,4 @@
-module github.com/caddyserver/forwardproxy
+module github.com/proofrock/forwardproxy
 
 go 1.21
 
