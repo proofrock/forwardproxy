@@ -70,6 +70,8 @@ github.com/caddyserver/caddy/v2 v2.7.6 h1:w0NymbG2m9PcvKWsrXO6EEkY9Ru4FJK8uQbYce
 github.com/caddyserver/caddy/v2 v2.7.6/go.mod h1:JCiwFMnRWjk8lOa7po0wM/75kwd38ccJPMSrXvQCMQ0=
 github.com/caddyserver/certmagic v0.20.0 h1:bTw7LcEZAh9ucYCRXyCpIrSAGplplI0vGYJ4BpCQ/Fc=
 github.com/caddyserver/certmagic v0.20.0/go.mod h1:N4sXgpICQUskEWpj7zVzvWD41p3NYacrNoZYiRM2jTg=
+github.com/caddyserver/forwardproxy v0.0.0-20240718200834-02be81e69669 h1:O5LSTnjGIrVOYwNKDZEBeRuwXRGeO//ZjFm7oAVixTE=
+github.com/caddyserver/forwardproxy v0.0.0-20240718200834-02be81e69669/go.mod h1:iYxYfvPLvFqVj1QSejwxOnaGZtmnmM8cD1M+277GhII=
 github.com/casbin/casbin/v2 v2.1.2/go.mod h1:YcPU1XXisHhLzuxH9coDNf2FbKpjGlbCg3n9yuLkIJQ=
 github.com/cenkalti/backoff v2.2.1+incompatible/go.mod h1:90ReRw6GdpyfrHakVjL/QHaoyV4aDUVVkXQJJJ3NXXM=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=

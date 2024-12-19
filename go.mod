@@ -1,11 +1,13 @@
-module github.com/caddyserver/forwardproxy
+module github.com/proofrock/forwardproxy
 
 go 1.21
 
 require (
 	github.com/caddyserver/caddy/v2 v2.7.6
+	github.com/caddyserver/forwardproxy v0.0.0-20240718200834-02be81e69669
 	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.22.0
+	golang.org/x/sync v0.4.0
 )
 
 require (
