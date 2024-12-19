@@ -411,7 +411,7 @@ func (h Handler) checkCredentials(r *http.Request) error {
 		return nil
 	}
 
-	// Old code differentiated between invalid credentials and invalid base64 ecc.
+	// [POC] Old code differentiated between invalid credentials and invalid base64 ecc.
 	// which is not easy here. But it can be done, if this POC is validated by
 	// caddy's team.
 	if usr.ID != "" {
@@ -420,7 +420,9 @@ func (h Handler) checkCredentials(r *http.Request) error {
 		repl.Set("http.auth.user.id", "invalidformat::")
 	}
 
-	// Change to error message, reporting the error
+	// [POC] Change to error message, reporting the error. Need to differentiate between
+	// types of errors (err is != nil only if malformed, but I didn't want to change too much
+	// the AuthenticateNoCredsPrompt method that is copied from AuthenticateNoCredsPrompt)
 	if err == nil {
 		err = errors.New("auth error")
 	}

@@ -8,9 +8,10 @@ import (
 
 	"github.com/caddyserver/caddy/v2/caddyconfig"
 	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
+	"github.com/caddyserver/caddy/v2/modules/caddyhttp/caddyauth"
 )
 
-// Same code as forwardproxy's basicauth former implementation
+// [POC] Code is the same as forwardproxy's basicauth former implementation
 func getCredsFromHeader(r *http.Request) (string, string, error) {
 	pa := strings.Split(r.Header.Get("Proxy-Authorization"), " ")
 	if len(pa) != 2 {
@@ -27,11 +28,12 @@ func getCredsFromHeader(r *http.Request) (string, string, error) {
 }
 
 // Authenticate validates the user credentials in req and returns the user, if valid.
-// Same code as caddy's basicAuth, but it doesn't write anything on the ResponseWriter
-func (hba HTTPBasicAuth) AuthenticateNoCredsPrompt(req *http.Request) (User, bool, error) {
+// [POC] Same code as caddy's basicAuth, but it doesn't write anything on the ResponseWriter
+// Needs upstreaming, in case, to keep the code inside caddy.
+func (hba HTTPBasicAuth) AuthenticateNoCredsPrompt(req *http.Request) (caddyauth.User, bool, error) {
 	username, plaintextPasswordStr, err := getCredsFromHeader(req)
 	if err != nil {
-		return User{}, false, err
+		return caddyauth.User{}, false, err
 	}
 
 	account, accountExists := hba.Accounts[username]
@@ -44,19 +46,29 @@ func (hba HTTPBasicAuth) AuthenticateNoCredsPrompt(req *http.Request) (User, boo
 
 	same, err := hba.correctPassword(account, []byte(plaintextPasswordStr))
 	if err != nil || !same || !accountExists {
-		return User{ID: username}, false, err
+		return caddyauth.User{ID: username}, false, err
 	}
 
-	return User{ID: username}, true, nil
+	return caddyauth.User{ID: username}, true, nil
 }
 
-// Lifted/adapted from modules/caddyhttp/caddyauth/caddyfile.go
-func ParseCaddyfileForHTTPBasicAuth(d *caddyfile.Dispenser) (*HTTPBasicAuth, error) {
+// [POC] Lifted/adapted from modules/caddyhttp/caddyauth/caddyfile.go#parseCaddyfile()
+// IDK how to reuse that method directly, honestly. Also, I don't have a httpcaddyfile.Helper as
+// in the original code, but a caddyfile.Dispenser seems to work.
+func ParseCaddyfileForHTTPBasicAuth(h *caddyfile.Dispenser) (*HTTPBasicAuth, error) {
+	// [POC] removed code
+	// h.Next() // consume directive name
+
+	// // "basicauth" is deprecated, replaced by "basic_auth"
+	// if h.Val() == "basicauth" {
+	// 	caddy.Log().Named("config.adapter.caddyfile").Warn("the 'basicauth' directive is deprecated, please use 'basic_auth' instead!")
+	// }
+
 	var ba HTTPBasicAuth
 	ba.HashCache = new(Cache)
 
-	var cmp Comparer
-	args := d.RemainingArgs()
+	var cmp caddyauth.Comparer
+	args := h.RemainingArgs()
 
 	var hashName string
 	switch len(args) {
@@ -68,37 +80,44 @@ func ParseCaddyfileForHTTPBasicAuth(d *caddyfile.Dispenser) (*HTTPBasicAuth, err
 		hashName = args[0]
 		ba.Realm = args[1]
 	default:
-		return nil, d.ArgErr()
+		return nil, h.ArgErr()
 	}
 
 	switch hashName {
 	case "bcrypt":
-		cmp = BcryptHash{}
+		cmp = caddyauth.BcryptHash{}
 	default:
-		return nil, d.Errf("unrecognized hash algorithm: %s", hashName)
+		return nil, h.Errf("unrecognized hash algorithm: %s", hashName)
 	}
 
 	ba.HashRaw = caddyconfig.JSONModuleObject(cmp, "algorithm", hashName, nil)
 
-	for d.NextBlock(0) {
-		username := d.Val()
+	for h.NextBlock(0) {
+		username := h.Val()
 
 		var b64Pwd string
-		d.Args(&b64Pwd)
-		if d.NextArg() {
-			return nil, d.ArgErr()
+		h.Args(&b64Pwd)
+		if h.NextArg() {
+			return nil, h.ArgErr()
 		}
 
 		if username == "" || b64Pwd == "" {
-			return nil, d.Err("username and password cannot be empty or missing")
+			return nil, h.Err("username and password cannot be empty or missing")
 		}
 
-		println(">", username, b64Pwd)
 		ba.AccountList = append(ba.AccountList, Account{
 			Username: username,
 			Password: b64Pwd,
 		})
 	}
 
+	// [POC] Removed code
+	// return Authentication{
+	// 	ProvidersRaw: caddy.ModuleMap{
+	// 		"http_basic": caddyconfig.JSON(ba, nil),
+	// 	},
+	// }, nil
+
+	// [POC] Added code
 	return &ba, nil
 }

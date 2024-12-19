@@ -14,6 +14,14 @@
 
 package caddyauthimported
 
+// [POC] I had to duplicate this because it doesn't export 'password' (same as 'Password?),
+// fakePassword, correctPassword(). Upstream patch would be needed I am afraid.
+// Code is the same but for package references (caddyauth.User, caddyauth.Authenticator)
+// and I had to comment out init() because it would register the module again.
+// A source of confusion: xcaddy compiles against a later version than go test, and
+// between the two versions the Comparer interface changed. I cannot find how to align the
+// two methods of running this.
+
 import (
 	"encoding/base64"
 	"encoding/hex"
@@ -27,8 +35,10 @@ import (
 	"golang.org/x/sync/singleflight"
 
 	"github.com/caddyserver/caddy/v2"
+	"github.com/caddyserver/caddy/v2/modules/caddyhttp/caddyauth"
 )
 
+// [POC] Removed code
 // func init() {
 // 	caddy.RegisterModule(HTTPBasicAuth{})
 // }
@@ -140,7 +150,7 @@ func (hba *HTTPBasicAuth) Provision(ctx caddy.Context) error {
 }
 
 // Authenticate validates the user credentials in req and returns the user, if valid.
-func (hba HTTPBasicAuth) Authenticate(w http.ResponseWriter, req *http.Request) (User, bool, error) {
+func (hba HTTPBasicAuth) Authenticate(w http.ResponseWriter, req *http.Request) (caddyauth.User, bool, error) {
 	username, plaintextPasswordStr, ok := req.BasicAuth()
 	if !ok {
 		return hba.promptForCredentials(w, nil)
@@ -159,7 +169,7 @@ func (hba HTTPBasicAuth) Authenticate(w http.ResponseWriter, req *http.Request) 
 		return hba.promptForCredentials(w, err)
 	}
 
-	return User{ID: username}, true, nil
+	return caddyauth.User{ID: username}, true, nil
 }
 
 func (hba HTTPBasicAuth) correctPassword(account Account, plaintextPassword []byte) (bool, error) {
@@ -204,7 +214,7 @@ func (hba HTTPBasicAuth) correctPassword(account Account, plaintextPassword []by
 	return same, nil
 }
 
-func (hba HTTPBasicAuth) promptForCredentials(w http.ResponseWriter, err error) (User, bool, error) {
+func (hba HTTPBasicAuth) promptForCredentials(w http.ResponseWriter, err error) (caddyauth.User, bool, error) {
 	// browsers show a message that says something like:
 	// "The website says: <realm>"
 	// which is kinda dumb, but whatever.
@@ -213,7 +223,7 @@ func (hba HTTPBasicAuth) promptForCredentials(w http.ResponseWriter, err error) 
 		realm = "restricted"
 	}
 	w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, realm))
-	return User{}, false, err
+	return caddyauth.User{}, false, err
 }
 
 // Cache enables caching of basic auth results. This is especially
@@ -297,6 +307,6 @@ type Account struct {
 
 // Interface guards
 var (
-	_ caddy.Provisioner = (*HTTPBasicAuth)(nil)
-	_ Authenticator     = (*HTTPBasicAuth)(nil)
+	_ caddy.Provisioner       = (*HTTPBasicAuth)(nil)
+	_ caddyauth.Authenticator = (*HTTPBasicAuth)(nil)
 )
