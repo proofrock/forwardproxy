@@ -226,7 +226,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyht
 	}
 
 	var authErr error
-	if len(h.BasicAuthModule.AccountList) > 0 {
+	if len(h.BasicAuthModule.Accounts) > 0 {
 		authErr = h.checkCredentials(r)
 	}
 	if h.ProbeResistance != nil && len(h.ProbeResistance.Domain) > 0 && reqHost == h.ProbeResistance.Domain {
@@ -405,6 +405,7 @@ func (h Handler) checkCredentials(r *http.Request) error {
 	repl := r.Context().Value(caddy.ReplacerCtxKey).(*caddy.Replacer)
 
 	usr, validAuth, err := h.BasicAuthModule.AuthenticateNoCredsPrompt(r)
+	println(fmt.Sprintf("%v, %t, %v", usr, validAuth, err))
 	if validAuth {
 		repl.Set("http.auth.user.id", usr.ID)
 		return nil
@@ -420,6 +421,9 @@ func (h Handler) checkCredentials(r *http.Request) error {
 	}
 
 	// Change to error message, reporting the error
+	if err == nil {
+		err = errors.New("auth error")
+	}
 	return errors.New("invalid credentials: " + err.Error())
 }
 

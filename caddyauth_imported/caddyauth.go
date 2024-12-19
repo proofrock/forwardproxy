@@ -25,9 +25,9 @@ import (
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 )
 
-func init() {
-	caddy.RegisterModule(Authentication{})
-}
+// func init() {
+// 	caddy.RegisterModule(Authentication{})
+// }
 
 // Authentication is a middleware which provides user authentication.
 // Rejects requests with HTTP 401 if the request is not authenticated.

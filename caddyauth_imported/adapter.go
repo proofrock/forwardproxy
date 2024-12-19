@@ -5,6 +5,9 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+
+	"github.com/caddyserver/caddy/v2/caddyconfig"
+	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
 )
 
 // Same code as forwardproxy's basicauth former implementation
@@ -45,4 +48,57 @@ func (hba HTTPBasicAuth) AuthenticateNoCredsPrompt(req *http.Request) (User, boo
 	}
 
 	return User{ID: username}, true, nil
+}
+
+// Lifted/adapted from modules/caddyhttp/caddyauth/caddyfile.go
+func ParseCaddyfileForHTTPBasicAuth(d *caddyfile.Dispenser) (*HTTPBasicAuth, error) {
+	var ba HTTPBasicAuth
+	ba.HashCache = new(Cache)
+
+	var cmp Comparer
+	args := d.RemainingArgs()
+
+	var hashName string
+	switch len(args) {
+	case 0:
+		hashName = "bcrypt"
+	case 1:
+		hashName = args[0]
+	case 2:
+		hashName = args[0]
+		ba.Realm = args[1]
+	default:
+		return nil, d.ArgErr()
+	}
+
+	switch hashName {
+	case "bcrypt":
+		cmp = BcryptHash{}
+	default:
+		return nil, d.Errf("unrecognized hash algorithm: %s", hashName)
+	}
+
+	ba.HashRaw = caddyconfig.JSONModuleObject(cmp, "algorithm", hashName, nil)
+
+	for d.NextBlock(0) {
+		username := d.Val()
+
+		var b64Pwd string
+		d.Args(&b64Pwd)
+		if d.NextArg() {
+			return nil, d.ArgErr()
+		}
+
+		if username == "" || b64Pwd == "" {
+			return nil, d.Err("username and password cannot be empty or missing")
+		}
+
+		println(">", username, b64Pwd)
+		ba.AccountList = append(ba.AccountList, Account{
+			Username: username,
+			Password: b64Pwd,
+		})
+	}
+
+	return &ba, nil
 }

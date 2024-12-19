@@ -29,9 +29,9 @@ import (
 	"github.com/caddyserver/caddy/v2"
 )
 
-func init() {
-	caddy.RegisterModule(HTTPBasicAuth{})
-}
+// func init() {
+// 	caddy.RegisterModule(HTTPBasicAuth{})
+// }
 
 // HTTPBasicAuth facilitates HTTP basic authentication.
 type HTTPBasicAuth struct {
