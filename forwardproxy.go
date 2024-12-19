@@ -405,7 +405,6 @@ func (h Handler) checkCredentials(r *http.Request) error {
 	repl := r.Context().Value(caddy.ReplacerCtxKey).(*caddy.Replacer)
 
 	usr, validAuth, err := h.BasicAuthModule.AuthenticateNoCredsPrompt(r)
-	println(fmt.Sprintf("%v, %t, %v", usr, validAuth, err))
 	if validAuth {
 		repl.Set("http.auth.user.id", usr.ID)
 		return nil
